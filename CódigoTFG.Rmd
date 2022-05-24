@@ -1,0 +1,615 @@
+---
+title: "TFGEscrito"
+author: "Jaime Bellver"
+output: word_document
+---
+## Análisis Descriptivo
+
+### Datos
+
+```{r,include=FALSE,warning=FALSE,message=FALSE}
+bienestar <- read.csv2("C:/Users/jaime/Desktop/Universidad/Cuarto/TFG/bienestar.csv")
+bienestarNULL <- read.csv2("C:/Users/jaime/Desktop/Universidad/Cuarto/TFG/bienestarNULL.csv")
+```
+
+### Selección de Variables
+
+```{r,include=FALSE,warning=FALSE,message=FALSE}
+datos<-bienestarNULL[,c(8:13,31,105:118,123,152:153,161,162,173,26)]
+for(i in 1:ncol(datos)) datos[,i]<-as.factor(datos[,i])
+```
+
+### Estudio de Variables
+
+#### Variable Respuesta
+
+```{r,include=FALSE,warning=FALSE}
+(NC_response<-which(is.na(datos$P4_3)))
+datos<-datos[-NC_response,]
+datos$P4_3=as.numeric(datos$P4_3)
+datos$P4_3=as.factor(datos$P4_3)
+colnames(datos)[28]="Y"
+```
+
+A continuación se muestra la distribución de la variable:
+
+```{r,echo=FALSE,warning=FALSE}
+library(ggplot2)
+ggplot(data=datos) +
+  geom_bar(aes(datos$Y),fill="lightblue") + 
+  scale_x_discrete(breaks = 1:4, labels=c("Siempre","Mucho","A veces","Nunca")) +
+  xlab("Deprimido la última semana") +
+  ylab("n")
+```
+```{r,include=FALSE,warning=FALSE}
+library(knitr)
+kable(table(datos$Y))
+```
+
+#### Predictores
+
+```{r,include=FALSE,warning=FALSE}
+library("dplyr")
+#table(datos$EDADEXACTA)
+datos$EDADEXACTA<-as.numeric(datos$EDADEXACTA)
+for(i in 1:nrow(datos)) {
+  if(datos$EDADEXACTA[i]<25) datos$EDADEXACTA[i]=1
+  if(between(datos$EDADEXACTA[i],25,34)) datos$EDADEXACTA[i]=2
+  if(between(datos$EDADEXACTA[i],35,44)) datos$EDADEXACTA[i]=3
+  if(between(datos$EDADEXACTA[i],45,54)) datos$EDADEXACTA[i]=4
+  if(between(datos$EDADEXACTA[i],55,64)) datos$EDADEXACTA[i]=5
+  if(datos$EDADEXACTA[i]>64) datos$EDADEXACTA[i]=6
+}
+
+datos$EDADEXACTA<-as.factor(datos$EDADEXACTA)
+```
+
+
+```{r, message=FALSE, warning=FALSE,echo=FALSE}
+library(ggpubr)
+PlotCap<-ggplot(data=datos) +
+  geom_bar(aes(CAPITAL),fill="steelblue") +
+  theme_minimal() + 
+  scale_x_discrete(breaks = 1:3, labels=c("Cap. de CCAA","Cap. de Provincia","Otro")) +
+  xlab("Capital") +
+  ylab("n")
+
+PlotTam<-ggplot(data=datos) +
+  geom_bar(aes(TAMUNI),fill="steelblue") +
+  theme_minimal() +
+  scale_x_discrete(breaks = 1:7, labels=c("-2m", "2m-10m", "10m1-50m", "50m-100m","100m-400m","400m-1M", "+1M")) +
+  xlab("Tamaño del municipio") +
+  ylab("n")+
+  theme(axis.text.x=element_text(angle=90))
+
+PlotNac<-ggplot(data=datos) +
+  geom_bar(aes(NACIONALIDAD),fill="steelblue") +
+  theme_minimal() + 
+  scale_x_discrete(breaks = 1:3, labels=c("Española","Española y Otra","otra")) +
+  xlab("Nacionalidad") +
+  ylab("n")
+
+PlotEda<-ggplot(data=datos) +
+  geom_bar(aes(EDADEXACTA),fill="steelblue") +
+  theme_minimal() + 
+  scale_x_discrete(breaks = 1:6, labels=c("18-24", "25-34", "35-44", "45-54", "55-64", "65-más")) +
+  xlab("Edad") +
+  ylab("n")
+
+ggarrange(PlotCap, PlotTam, PlotNac,PlotEda,labels = c("A", "B", "C","D"),ncol = 2, nrow = 2)
+```
+
+
+```{r,echo=FALSE,warning=FALSE}
+library(ggpubr)
+PlotP1<-ggplot(data=datos) +
+  geom_bar(aes(P1),fill="steelblue") +
+  theme_minimal() + 
+  scale_x_discrete(breaks = 1:4, labels=c("Mucho","Bastante","Algo","Nada")) +
+  xlab("Preocupación sobre la situación del Covid-19") +
+  ylab("n")+
+  theme(axis.text.x=element_text(angle=90))
+
+PlotP6<-ggplot(data=datos) +
+  geom_bar(aes(P6),fill="steelblue") +
+  theme_minimal() +
+  scale_x_discrete(breaks = 1:3, labels=c("Si","No","N/A")) +
+  xlab("Confinamiento solo") +
+  ylab("n")
+
+PlotEsc<-ggplot(data=datos) +
+  geom_bar(aes(ESCACONFIANZA),fill="steelblue") +
+  theme_minimal()  +
+  xlab("Confianza en la gente") +
+  ylab("n") +
+  theme(axis.text.x=element_text(angle=90))
+
+ggarrange(PlotP1, PlotP6, PlotEsc,labels = c("A", "B", "C"),ncol = 3, nrow = 1)
+```
+
+
+```{r,echo=FALSE,warning=FALSE}
+library(ggpubr)
+PlotEst<-ggplot(data=datos) +
+  geom_bar(aes(ESTUDIOS),fill="steelblue") +
+  theme_minimal() +
+  scale_x_discrete(breaks = 1:7, labels=c("Nada","Primaria","Secundaria","Bachillerato","F.P.","Superiores","Otros")) +
+  xlab("Estudios") +
+  ylab("n") +
+  theme(axis.text.x=element_text(angle=90)) 
+
+PlotSit<-ggplot(data=datos) +
+  geom_bar(aes(SITLAB),fill="steelblue") +
+  theme_minimal() +
+  scale_x_discrete(breaks = 1:7,labels=c("Jubilado","Pensionista","En paro","Busca 1er empleo","Estudiante","Doméstico","Otro")) +
+  xlab("Situación Laboral") +
+  ylab("n") +
+  theme(axis.text.x=element_text(angle=90))
+
+PlotCla<-ggplot(data=datos) +
+  geom_bar(aes(CLASESUB),fill="steelblue") +
+  theme_minimal() +
+  scale_x_discrete(breaks = 1:6,labels=c("Alta-Media","Media","Media-Baja","Proletariado","Baja/Pobre","Otras")) +
+  xlab("Clase Social Subjetiva") +
+  ylab("n") +
+  theme(axis.text.x=element_text(angle=90))
+
+PlotEci<-ggplot(data=datos) +
+  geom_bar(aes(ECIVIL),fill="steelblue") +
+  theme_minimal() +
+  scale_x_discrete(breaks = 1:5,labels=c("Casado","Soltero","Viudo","Separado","Divorciado")) +
+  xlab("Estado Civil") +
+  ylab("n") +
+  theme(axis.text.x=element_text(angle=90))
+
+
+ggarrange(PlotEst, PlotSit, PlotCla,PlotEci,labels = c("A", "B", "C","D"),ncol = 2, nrow = 2)
+```
+
+
+A continuación se muestra un gráfico de barras que representa las variables $P13_-1,P13_-2, ..., P13_-10$:
+
+```{r,echo=FALSE,warning=FALSE}
+datosPlotP13<-datos[,c(8:17)]
+
+#x<-table(rep(2,1))
+#x[1]<-0
+#PlotP14A_1<-c(table(datosPlotP14A$P14A_1)[1],x,table(datosPlotP14A$P14A_1)[2:9])
+PlotP13<-rbind(table(datosPlotP13$P13_1),table(datosPlotP13$P13_2),table(datosPlotP13$P13_3),table(datosPlotP13$P13_4),table(datosPlotP13$P13_5),table(datosPlotP13$P13_6),table(datosPlotP13$P13_7),table(datosPlotP13$P13_8),table(datosPlotP13$P13_9),table(datosPlotP13$P13_10))
+PlotP13<-`rownames<-`(PlotP13,c("P13_01","P13_02","P13_03","P13_04","P13_05","P13_06","P13_07","P13_08","P13_09","P13_10"))
+PlotP13<-as.data.frame(PlotP13)
+
+library(tidyverse)
+PlotP13<-PlotP13 %>% rownames_to_column("ID") %>% pivot_longer(!ID)
+PlotP13<-`colnames<-`(PlotP13,c("Variable","Escala","Tamaño"))
+PlotP13<-as.data.frame(PlotP13)
+PlotP13$Escala<-as.factor(PlotP13$Escala)
+
+ggplot(arrange(PlotP13,Escala)) +
+  geom_col(aes(x = Variable, y = Tamaño, fill = Escala), position = position_stack(reverse=TRUE),stat="identity") +
+  scale_fill_brewer(palette=)
+
+#https://stackoverflow.com/questions/6693257/making-a-stacked-bar-plot-for-multiple-variables-ggplot2-in-r
+```
+
+En segundo lugar, se representan las variables $P14A_-1, P14A_-3, P14A_-3$ y $P14A_-4$. Indican el nivel de satisfacción en diferentes ámbitos de la vida en una escala del 1 al 10, siendo 1 "Insatisfecho" y 10 "Completamente satisfecho".
+
+```{r,echo=FALSE,warning=FALSE}
+datosPlotP14A<-datos[,c(18:21)]
+
+x<-table(rep(2,1))
+x[1]<-0
+PlotP14A_1<-c(table(datosPlotP14A$P14A_1)[1],x,table(datosPlotP14A$P14A_1)[2:9])
+PlotP14A<-rbind(PlotP14A_1,table(datosPlotP14A$P14A_2),table(datosPlotP14A$P14A_3),table(datosPlotP14A$P14A_4))
+PlotP14A<-`rownames<-`(PlotP14A,c("P14A_01","P14A_02","P14A_03","P14A_04"))
+PlotP14A<-as.data.frame(PlotP14A)
+
+library(tidyverse)
+PlotP14A<-PlotP14A %>% rownames_to_column("ID") %>% pivot_longer(!ID)
+PlotP14A<-`colnames<-`(PlotP14A,c("Variable","Escala","Tamaño"))
+PlotP14A<-as.data.frame(PlotP14A)
+#PlotP14A$Escala<-as.factor(PlotP14A$Escala)
+
+for(i in 1:40) {
+  ifelse(i%%10!=0,PlotP14A$Escala[i]<-paste0("0",PlotP14A$Escala[i]),PlotP14A$Escala[i]<-PlotP14A$Escala[i])
+  }
+
+ggplot(arrange(PlotP14A,Escala)) +
+  geom_col(aes(x = Variable, y = Tamaño, fill = Escala), position = position_stack(reverse=TRUE),stat="identity") +
+  scale_fill_brewer(palette="RdBu")
+```
+
+Se puede observar que la gran mayoría de las respuestas se encuentran en los niveles superiores de la escala. Destaca la variable $P14A_-01$ con los niveles más elevados de satisfacción. Responde a la satisfacción en la vida familiar. Por otro lado, la variable $P14A_-03$ es aquella con valores más bajos y responde a la satisfacción en la vida social.
+
+#### Tablas de Contingencia
+```{r,echo=FALSE,message=FALSE,warning=FALSE}
+library(expss)
+cross_cases(datos,datos$Y,datos$SEXO)
+```
+
+#### Missing Values
+
+```{r,echo=FALSE,message=FALSE,warning=FALSE}
+DataExplorer::plot_missing(datos,missing_only = TRUE,ggtheme = theme_light())
+```
+
+El gráfico muestra la proporción de missing values que tiene cada variable. No se observa ninguna variable con un número significativo de NA. En concreto, los predictores $ESTUDIOS$ y $P13_-2$ son los que tiene mayor número de missing values pero no llegan a superar el 10%. Además, como los métodos que se emplean para el estudio de los datos tienen la capacidad de manejar NA, no es necesario realizar métodos de imputación o eliminar variables. 
+
+## Modelos de Clasificación
+
+### Train y Test
+
+En primer lugar, separamos un 20% de los datos para realizar una evaluación final. De este modo se evita information leakage. Para garantizar que tanto en los datos disponibles para la creación del modelo, como en los datos para la evaluación final se encuentran datos con todos los niveles de la variable respuesta, se realiza la división con el 80% de las instancias de cada uno de los niveles de la respuesta. A continuación se muestra una tabla con el conteo de las instancias para cada uno de los valores de la respuesta tanto en los datos totales como en los de evaluación y en los disponibles respectivamente.
+
+```{r, echo=FALSE,message=FALSE,warning=FALSE}
+library(knitr)
+datos_disp<-rbind(datos[sample(which(datos$Y==1),length(which(datos$Y==1))*0.8),],
+datos[sample(which(datos$Y==2),length(which(datos$Y==2))*0.8),],
+datos[sample(which(datos$Y==3),length(which(datos$Y==3))*0.8),],
+datos[sample(which(datos$Y==4),length(which(datos$Y==4))*0.8),])
+
+datos_eval<-datos[nrow(datos_disp):nrow(datos),]
+
+datos_disp<-datos_disp[sample(1:nrow(datos_disp)), ]
+datos_eval<-datos_eval[sample(1:nrow(datos_eval)), ]
+
+kable(cbind(c("Total","Disponibles","Evaluación"),rbind(table(datos$Y),table(datos_disp$Y),table(datos_eval$Y))))
+```
+
+Además, dividimos los datos disponibles en entrenamiento y test. Se utilizan 2/3 de los datos disponibles para entrenar y 1/3 como test. Los datos de test son los encargados de evaluar el modelo cuando es necesario. Finalmente, cuando se ha seleccionado el modelo más adecuado para los datos, se emplean los datos de evaluación para obtener una estimación de la capacidad de predicción del modelo.
+
+```{r,echo=FALSE,message=FALSE,warning=FALSE}
+datos_disp$row_num <- seq.int(nrow(datos_disp)) 
+set.seed(10)
+datos_train<-rbind(datos_disp[sample(which(datos_disp$Y==1),length(which(datos_disp$Y==1))*2/3),],
+datos_disp[sample(which(datos_disp$Y==2),length(which(datos_disp$Y==2))*2/3),],
+datos_disp[sample(which(datos_disp$Y==3),length(which(datos_disp$Y==3))*2/3),],
+datos_disp[sample(which(datos_disp$Y==4),length(which(datos_disp$Y==4))*2/3),])
+
+datos_test<-datos_disp[nrow(datos_train):nrow(datos_disp),]
+
+datos_train<-datos_train[sample(1:nrow(datos_train)), ]
+indices_train<-datos_train$row_num
+
+datos_test<-datos_test[sample(1:nrow(datos_test)), ]
+indices_test<-datos_test$row_num
+
+datos_disp<-datos_disp[,1:(ncol(datos_disp)-1)]
+```
+
+### Creación del Modelo
+
+#### Tarea
+
+Para crear los diferentes modelos que se van a comparar, se va ha emplear principalmente la librería MLR3 de R. Se trata de un paquete que une diferentes librerías relacionadas con el Machine Learning y unifica su forma de uso.
+
+En primer lugar, es necesario crear la tarea (task) que va a realizar el modelo. Es necesario indicar en el task la variable respuesta y los datos que se van a emplear para el entrenamiento y para el test. En este caso, la variable respuesta es $P4_-3$ y empleará los datos de test y de train separados en el apartado anterior.
+
+
+```{r,echo=FALSE,message=FALSE,warning=FALSE}
+library(mlr3verse)
+mytask <- as_task_classif(datos_disp, target="Y")
+train_validation_partition <- rsmp("custom")
+train_validation_partition$instantiate(mytask,
+train = list(indices_train),
+test = list(indices_test))
+```
+
+#### Selección de Método de Imputación 
+
+```{r,echo=FALSE,message=FALSE,warning=FALSE}
+#Preproceso
+rpart_acc_function=function() {
+  rpart_learner <- lrn("classif.rpart") 
+  is<-po("imputesample")
+  imo<-po("imputemode")
+  imh<-po("imputehist")
+  imor<-po("imputeoor")
+  ilr<-po("imputelearner",lrn("classif.rpart"))
+
+  imputes<-c(is,imo,imh,imor,ilr)
+  
+  vrpart_acc<<-c()
+  
+  
+  for(i in 1:5) {
+    graph= imputes[i] %>>% po(rpart_learner)
+
+    impute_rpart_learner<-as_learner(graph)
+    set.seed(100)
+    rpart_resample<-resample(task=mytask,
+                          learner=impute_rpart_learner,
+                          resampling=train_validation_partition)
+    
+    rpart_acc<-rpart_resample$aggregate(msr("classif.acc"))
+    vrpart_acc<<-c(vrpart_acc,rpart_acc)
+  }
+}
+
+rpart_acc_function()
+```
+
+Una vez realizado el preproceso, creamos una tabla con los valores de cada método de imputación y su correspondiente escalado.
+
+```{r,echo=FALSE,message=FALSE,warning=FALSE}
+matrix_preproceso<<-matrix(vrpart_acc,ncol=5)
+colnames(matrix_preproceso)<-c("imputesample","imputemode","imputehist","imputeoor","imputelrn")
+(matrix_preproceso)
+```
+
+#### Evaluación de métodos sin ajuste de hiperparámetros
+
+A continuación, se construyen y entrenar los diferentes modelos que se quieren comparar. En primer lugar, se van a crear modelos de Árbol de decisión basados en Rpart y en C5.0. Posteriormente, se crea un modelo de Random Forest que emplea la técnica de Bagging y de Randomización. Finalmente, se construye un modelo empleando la técnica de Boosting con árboles de decisión.
+
+```{r,warning=FALSE,message=FALSE,echo=FALSE}
+learner = lrn("classif.rpart", keep_model = TRUE)
+set.seed(100)
+learner$train(mytask)
+autoplot(learner)
+```
+
+```{r,echo=FALSE,warning=FALSE,message=FALSE}
+#poe = po("encode")
+#poe$param_set$values$method = "treatment"
+
+learner_acc_function=function() {
+  rpart <- lrn("classif.rpart")
+  c50 <- lrn("classif.C50")
+  ranger <- lrn("classif.ranger") #Random Forest
+  #cforest <- lrn("classif.cforest") #Ensemble of decision trees extremely randomized
+  boost<-lrn("classif.gbm")
+  
+  vlearners=c(rpart,c50,ranger,boost)
+
+  learner_acc=c()
+
+for(i in 1:4) {
+    graph<-  ilr<-po("imputelearner",lrn("classif.rpart")) %>>% vlearners[i]
+      
+    impute_learner<-as_learner(graph)
+    set.seed(100)
+    model_resample<-resample(task=mytask,
+                          learner=impute_learner,
+                          resampling=train_validation_partition)
+    model_acc<-model_resample$aggregate(msr("classif.acc"))
+    learner_acc=c(learner_acc,model_acc)
+}
+  matrix_learners<<-matrix(learner_acc,ncol=4)
+}
+
+learner_acc_function()
+```
+
+Empleando la métrica RAE, se pueden comparar los modelos para encontrar el más adecuado tiendo en cuenta que los modelos están siendo entrenados con sus hiperparámetros definidos por defecto.
+
+```{r,echo=FALSE,warning=FALSE,message=FALSE}
+colnames(matrix_learners)<-c("rpart","C5.0","ranger","gbm")
+matrix_learners
+```
+
+#### Evaluación de métodos con ajuste de hiperparámetros
+
+Por último, se crean los mismos modelos del apartado anterior pero modificando sus hiperparámetros.
+
+```{r,echo=FALSE,message=FALSE,warning=FALSE}
+graph2=ilr<-po("imputelearner",lrn("classif.rpart")) %>>% lrn("classif.ranger")
+impute_scale_learner<-as_learner(graph2)
+my_learner=impute_scale_learner
+
+my_space <- ps(classif.ranger.mtry = p_fct(levels=c(1:27)))
+terminator<-trm("none")
+tuner=tnr("grid_search")
+measure = msr("classif.acc")
+
+desc_inner<-rsmp("holdout")
+desc_outer <- train_validation_partition
+
+learner_ajuste<-AutoTuner$new(
+  learner = my_learner,
+  resampling = desc_inner,
+  measure = measure,
+  search_space = my_space,
+  terminator = terminator,
+  tuner=tuner,
+  store_tuning_instance = TRUE)
+
+learner_ajuste_resample <- resample(mytask,learner_ajuste,desc_outer,store_models = TRUE)
+
+error_outer <- learner_ajuste_resample$aggregate(measure)
+
+results_mtry_acc<-c(dplyr::arrange(as.data.frame(as.data.table(learner_ajuste_resample$learners[[1]]$tuning_instance$archive)), classif.acc)[1:27,c(1,2)])
+
+for(i in 1:length(results_mtry_acc[[1]])) {
+  ifelse(as.numeric(results_mtry_acc[[1]][i])-10<0,results_mtry_acc[[1]][i]<-paste0("0",results_mtry_acc[[1]][i]),results_mtry_acc[[1]][i]<-results_mtry_acc[[1]][i])
+  }
+
+ggplot() +
+  geom_point(aes(as.numeric(results_mtry_acc[[1]]),results_mtry_acc[[2]]),color="steelblue",size=3) + 
+  xlab("Valor de Mtry") +
+  ylab("Tasa de aciertos")
+```
+
+Mtry=5 valor óptimo
+
+```{r,echo=FALSE,message=FALSE,warning=FALSE}
+graph2=ilr<-po("imputelearner",lrn("classif.rpart")) %>>% lrn("classif.ranger")
+impute_scale_learner<-as_learner(graph2)
+my_learner=impute_scale_learner
+
+my_space <- ps(classif.ranger.max.depth = p_fct(levels=c(1:27)))
+terminator<-trm("none")
+tuner=tnr("grid_search")
+measure = msr("classif.acc")
+
+desc_inner<-rsmp("holdout")
+desc_outer <- train_validation_partition
+
+learner_ajuste<-AutoTuner$new(
+  learner = my_learner,
+  resampling = desc_inner,
+  measure = measure,
+  search_space = my_space,
+  terminator = terminator,
+  tuner=tuner,
+  store_tuning_instance = TRUE)
+
+learner_ajuste_resample <- resample(mytask,learner_ajuste,desc_outer,store_models = TRUE)
+
+error_outer <- learner_ajuste_resample$aggregate(measure)
+
+results_mtry_acc<-c(dplyr::arrange(as.data.frame(as.data.table(learner_ajuste_resample$learners[[1]]$tuning_instance$archive)), classif.acc)[1:27,c(1,2)])
+
+for(i in 1:length(results_mtry_acc[[1]])) {
+  ifelse(as.numeric(results_mtry_acc[[1]][i])-10<0,results_mtry_acc[[1]][i]<-paste0("0",results_mtry_acc[[1]][i]),results_mtry_acc[[1]][i]<-results_mtry_acc[[1]][i])
+  }
+
+ggplot() +
+  geom_point(aes(as.numeric(results_mtry_acc[[1]]),results_mtry_acc[[2]]),color="steelblue",size=3) + 
+  xlab("Profundidad de los árboles") +
+  ylab("Tasa de aciertos") +
+  theme(axis.text.x=element_text(size=5))
+```
+
+profundidad=23 o 14
+
+```{r,echo=FALSE,message=FALSE,warning=FALSE}
+graph2=ilr<-po("imputelearner",lrn("classif.rpart")) %>>% lrn("classif.ranger")
+impute_scale_learner<-as_learner(graph2)
+my_learner=impute_scale_learner
+
+my_space <- ps(classif.ranger.num.trees = p_fct(levels=c(2,10,30,60,100,200,500,1000,2000)))
+terminator<-trm("none")
+tuner=tnr("grid_search")
+measure = msr("classif.acc")
+
+desc_inner<-rsmp("holdout")
+desc_outer <- train_validation_partition
+
+learner_ajuste<-AutoTuner$new(
+  learner = my_learner,
+  resampling = desc_inner,
+  measure = measure,
+  search_space = my_space,
+  terminator = terminator,
+  tuner=tuner,
+  store_tuning_instance = TRUE)
+
+learner_ajuste_resample <- resample(mytask,learner_ajuste,desc_outer,store_models = TRUE)
+
+error_outer <- learner_ajuste_resample$aggregate(measure)
+
+results_mtry_acc<-c(dplyr::arrange(as.data.frame(as.data.table(learner_ajuste_resample$learners[[1]]$tuning_instance$archive)), classif.acc)[1:99,c(1,2)])
+
+for(i in 1:length(results_mtry_acc[[1]])) {
+  ifelse(as.numeric(results_mtry_acc[[1]][i])-10<0,results_mtry_acc[[1]][i]<-paste0("0",results_mtry_acc[[1]][i]),results_mtry_acc[[1]][i]<-results_mtry_acc[[1]][i])
+  }
+
+ggplot() +
+  geom_point(aes(as.numeric(results_mtry_acc[[1]]),results_mtry_acc[[2]]),color="steelblue",size=3) + 
+  xlab("Número de árboles") +
+  ylab("Tasa de aciertos") +
+  theme(axis.text.x=element_text(size=5))
+```
+
+```{r,echo=FALSE,message=FALSE,warning=FALSE}
+graph2=ilr<-po("imputelearner",lrn("classif.rpart")) %>>% lrn("classif.ranger")
+impute_scale_learner<-as_learner(graph2)
+my_learner=impute_scale_learner
+
+my_space <- ps(classif.ranger.num.trees = p_fct(levels=c(60:100)),classif.ranger.max.depth = p_fct(levels=c(10:27)),classif.ranger.mtry = p_fct(levels=c(1:13)))
+#generate_design_random(my_space, 100)
+terminator <- trm("evals", n_evals = 800)
+tuner <- tnr("random_search")
+measure = msr("classif.acc")
+
+desc_inner<-rsmp("holdout")
+desc_outer <- train_validation_partition
+
+learner_ajuste<-AutoTuner$new(
+  learner = my_learner,
+  resampling = desc_inner,
+  measure = measure,
+  search_space = my_space,
+  terminator = terminator,
+  tuner=tuner,
+  store_tuning_instance = TRUE)
+
+learner_ajuste_resample <- resample(mytask,learner_ajuste,desc_outer,store_models = TRUE)
+
+error_outer <- learner_ajuste_resample$aggregate(measure)
+
+(results_mtry_acc<-c(dplyr::arrange(as.data.frame(as.data.table(learner_ajuste_resample$learners[[1]]$tuning_instance$archive)), classif.acc)[800,c(1,2,3,4)]))
+```
+
+
+#### Modelo Final
+
+```{r,echo=FALSE,warning=FALSE,message=FALSE}
+mytask2<-as_task_classif(datos_disp, target="Y")
+graph<-po("imputelearner",lrn("classif.rpart")) %>>% lrn("classif.ranger")
+
+impute_learner<-as_learner(graph)
+set.seed(100)
+impute_learner$train(mytask2)
+
+#saveRDS(my_learner, "./final_model.rds")
+```
+
+```{r,echo=FALSE,message=FALSE,warning=FALSE}
+set.seed(100)
+predicciones<-predict(impute_learner,datos_eval)
+aciertos<-which(predicciones==datos_eval$Y)
+(accuracy_final<-length(aciertos)/length(predicciones))
+
+fallos<-which(predicciones!=datos_eval$Y)
+table(datos_disp$Y)
+table(datos_eval$Y[fallos])
+table(datos_eval$Y[aciertos])
+table(datos_eval$Y[fallos])/table(datos_eval$Y)
+accuracy_final
+```
+
+```{r,echo=FALSE,message=FALSE,warning=FALSE}
+library(grid)
+library(missRanger)
+data_disp_miss<-missRanger(datos_disp)
+data_eval_miss<-missRanger(datos_eval)
+```
+
+```{r,echo=FALSE,message=FALSE,warning=FALSE}
+library(randomForest)
+ModFinal<-randomForest(Y~.,data=data_disp_miss,ntree=5000,importance=TRUE,keep.forest=TRUE)
+ModFinal
+```
+
+```{r,echo=FALSE,message=FALSE,warning=FALSE}
+set.seed(100)
+predicciones<-predict(ModFinal,data_eval_miss)
+aciertos<-which(predicciones==data_eval_miss$Y)
+(accuracy_final<-length(aciertos)/length(predicciones))
+
+fallos<-which(predicciones!=datos_eval$Y)
+table(datos_disp$Y)
+table(datos_eval$Y[fallos])
+table(datos_eval$Y[aciertos])
+table(datos_eval$Y[fallos])/table(datos_eval$Y)
+accuracy_final
+```
+
+```{r,echo=FALSE,message=FALSE,warning=FALSE}
+library(randomForestExplainer)
+#explain_forest(ModFinal,interactions=TRUE,data=data_disp_miss)
+varImpPlot(ModFinal,main = "Importancia de las variables")
+```
+
+```{r,echo=FALSE,message=FALSE,warning=FALSE}
+set.seed(100)
+predicciones_prob<-predict(ModFinal,data_eval_miss,type="prob")
+library(verification)
+roc.plot(as.numeric(ModFinal$y=="4"),ModFinal$votes[,4],main = "Curva ROC con evaluación Out Of Bag",xlab = "1- Especificidad",ylab = "Sensibilidad")
+roc.area(as.numeric(ModFinal$y=="4"),ModFinal$votes[,4])
+roc.plot(as.numeric(data_eval_miss$Y=="4"),predicciones_prob[,4],main = "Curva ROC con muestra de evaluación",xlab = "1- Especificidad",ylab = "Sensibilidad")
+roc.area(as.numeric(data_eval_miss$Y=="1"),predicciones_prob[,1])
+```
+
+
